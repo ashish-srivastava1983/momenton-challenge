@@ -19,3 +19,10 @@ variable web_tier_node_size {
   type        = number
   default     = 1
 }
+
+variable app_tier_node_size {
+  description = "Web tier node target size"
+  type        = number
+  default     = 1
+}
+

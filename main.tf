@@ -1,5 +1,6 @@
 locals {
   web_tier   = "web-tier-node"
+  app_tier   = "app-tier-node"
 }
 
 # Create a service account for VM instances
@@ -144,6 +145,63 @@ resource "google_compute_region_instance_group_manager" "web_tier_mig" {
   }
 }
 
+# Define Instance template for APP tier
+resource "google_compute_instance_template" "app-tier-template" {
+  name        = "${local.app_tier}-template"
+  description = "This template is used to create Web Tier server."
+  tags = ["allow-incoming-ssh", "${local.app_tier}"]
+
+  labels = {
+    confidentiality = "confidential",
+    trustlevel      = "high",
+    integrity       = "highlytrusted"
+    environment     = var.env  
+  }
+
+  instance_description = local.app_tier
+  machine_type         = "n1-standard-1"
+  can_ip_forward       = false
+
+  scheduling {
+    automatic_restart   = true
+    on_host_maintenance = "MIGRATE"
+  }
+
+# Create a new boot disk from an image
+  disk {
+    source_image = data.google_compute_image.os_image.self_link
+    disk_size_gb = 50
+    auto_delete  = true
+    boot         = true
+  }
+
+  network_interface {
+    network = google_compute_network.companynews_vpc_network.id
+    subnetwork = google_compute_subnetwork.app_tier_subnetwork.id
+  }
+
+  metadata = merge(
+    {
+      enable-osconfig = "TRUE",
+      enable-os-inventory = "TRUE",
+      enable-guest-attributes = "TRUE",
+      enable-oslogin = "TRUE",
+    },
+  )
+
+  metadata_startup_script = "${file("app-tier-startup-script.sh")}"
+
+  service_account {
+    # Google recommends custom service accounts that have cloud-platform scope and permissions granted via IAM Roles.
+    email  = google_service_account.gce-vm-sa.email
+    scopes = ["cloud-platform"]
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
 # Create firewall rule to connect to Web tier VM
 resource "google_compute_firewall" "web_tier_fw_rules" {
   name    = "${local.web_tier}-firewall-rules"
@@ -162,6 +220,75 @@ resource "google_compute_firewall" "web_tier_fw_rules" {
 
 # target_service_accounts = [google_service_account.gce-vm-sa.email]
   target_tags = ["${local.web_tier}"]
+}
+
+resource "google_compute_health_check" "app_tier_autohealing" {
+  name                = "${local.app_tier}-autohealing-health-check"
+  check_interval_sec  = 5
+  timeout_sec         = 5
+  healthy_threshold   = 2
+  unhealthy_threshold = 10 # 50 seconds
+
+  http_health_check {
+    request_path = "/healthz"
+    port         = "80"
+  }
+}
+
+# Create a Managed instance Group for APP Tier
+resource "google_compute_region_instance_group_manager" "app_tier_mig" {
+  name                       = "${local.app_tier}-cluster"
+  base_instance_name         = local.app_tier
+  region                     = var.region_aus
+  distribution_policy_zones  = var.availability_zones_aus
+  version {
+    instance_template = google_compute_instance_template.app-tier-template.self_link
+  }
+  target_size  = var.app_tier_node_size
+  named_port {
+    name = "http"
+    port = 80
+  }
+  
+  auto_healing_policies {
+  health_check      = google_compute_health_check.app_tier_autohealing.self_link
+  initial_delay_sec = 300
+  }
+}
+
+# Create firewall rule to connect to APP tier VM
+resource "google_compute_firewall" "app_tier_fw_rules" {
+  name    = "${local.app_tier}-firewall-rules"
+  network = google_compute_network.companynews_vpc_network.id
+
+  allow {
+    protocol = "icmp"
+  }
+
+  allow {
+    protocol = "tcp"
+    ports    = ["22"]
+  }
+
+  source_ranges = ["0.0.0.0/0"]
+
+  target_tags = ["${local.app_tier}"]
+}
+
+# Create firewall rule to connect to APP tier Application from WEB tier
+resource "google_compute_firewall" "app_tier_web_fw_rules" {
+  name    = "${local.app_tier}-web-firewall-rules"
+  network = google_compute_network.companynews_vpc_network.id
+
+  allow {
+    protocol = "tcp"
+    ports    = ["8080"]
+  }
+
+  source_ranges = ["10.1.0.0/24"]
+
+# target_service_accounts = [google_service_account.gce-vm-sa.email]
+  target_tags = ["${local.app_tier}"]
 }
 
 # HTTPS Load balancer - backend service
