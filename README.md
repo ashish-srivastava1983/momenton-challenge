@@ -3,7 +3,11 @@
 ## Assumptions
 - GCP project already exists
 - A new VPC network is required to host the application
-- 
+- Oragnization Policies are set. For example, to prevent VMs coming up with externap IP addresses, trsuted image policy etc.
+
+## Design Overview
+
+Refer to the image Design_Overview.png for Design overview. 
 
 ## Limited Release 
 
