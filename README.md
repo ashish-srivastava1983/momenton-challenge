@@ -1,4 +1,4 @@
-# momenton-challenge GCP
+# momenton-challenge GCP (in progress...)
 
 ## Assumptions
 - GCP project already exists
