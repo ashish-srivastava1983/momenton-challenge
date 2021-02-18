@@ -1,4 +1,4 @@
-# momenton-challenge
+# momenton-challenge GCP
 
 ## Assumptions
 - GCP project already exists
@@ -36,6 +36,7 @@ Refer to the image Design_Overview.png for Design overview.
 - Create Cloud Router and Cloud NAT so that the internal VMs can communciate with internet for software packages and system updates. Alternatively, this can be achieved in a more secure and controlled way by using either of the following methods or combination of them:
   - using sqid proxy - we can whitelist IP or a CIDR range to allow access to external sites.
   - use packer to create images with all the dependent packages and software and use these images to build VMs. When OS or software update is needed, create a new image using packer and roll out the new image using Rolling Upgrade strategy in the Managed Instance Group.
+  - Use tools such as GCP hosted Artifactory to host remote repos and artefactss such as software packages and enable firewall rules to access artifactory.
 - Create HTTP(S) Load Balancer for incoming traffic to the web tier.
   - Create a Backend Service
   - Add MIG as a backend to the Backend Service
