@@ -5,7 +5,9 @@
 - A new VPC network is required to host the application
 - 
 
-## Following needs to be done to set "training" and "production" environment for limited release.
+## Limited Release 
+
+### Following needs to be done to provision "training" and "production" environments for limited release.
 
 - Create a custom VPC network with two subnets in australia-southeast1 region.
   - web-tier-network
@@ -41,7 +43,9 @@
 - Create an Internal Load Balancer (ILB) to receive traffic from web tier VM and distribute teh traffic to app-tier VMs.
 - Create neessary firewall rules to allow web-tier VMs to send traffic to app-tier VMs via ILB. 
 
-## Requirements for full Public release
+## Full Public Release
+
+### Requirements for full Public release
 - Availability - 24/7
 - Sub second response time
 - Tolerate single erver failures
