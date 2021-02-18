@@ -25,6 +25,7 @@ Refer to the image Design_Overview.png for Design overview.
   - Network/Subnetwork
   - Metadata values
   - Startup Script
+    - install nginx web server
   - Service Account and its scope
 - Use shielded VMs to protect against rootkits and bootkits.
 - Create health check for Managed Instance Group (MIG).
