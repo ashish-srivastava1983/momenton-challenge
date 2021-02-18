@@ -5,9 +5,9 @@
 - A new VPC network is required to host the application
 - 
 
-## Following is to be done to set up the "training" environment
+## Following needs to be done to set "training" and "production" environment for limited release.
 
-- Create a custom VPC network in austraila-southeast1 region with two subnets: 
+- Create a custom VPC network with two subnets in australia-southeast1 region.
   - web-tier-network
   - app-tier-network
 - Create Instance template, defining:
@@ -40,3 +40,17 @@
 - If requried, we can also use Cloud Identity Aware Proxy (IAP) to control authentication and authorization to the applciation.
 - Create an Internal Load Balancer (ILB) to receive traffic from web tier VM and distribute teh traffic to app-tier VMs.
 - Create neessary firewall rules to allow web-tier VMs to send traffic to app-tier VMs via ILB. 
+
+## Requirements for full Public release
+- Availability - 24/7
+- Sub second response time
+- Tolerate single erver failures
+- Scalability 
+
+### Following updates will be required for full public release
+- Extend the VPC network and create new subnet(s) in new region(s).
+- Increase the target nodes in MIGs appropriately.
+- For Web tier, create another Backend Service with MIG as a backed in another region as required.
+- Might need to craete a new ser of app-tier MIG and ILB in the new region.
+- Enable Cloud CDN with HTTP(s) Load balancer to serve static content faster and closer to the end user.
+- May explore the option of Cloud SQl (regional with read replicas) or Cloud Spanner (global SQL database) for data storage at scale and to achieve high availability and performance.
