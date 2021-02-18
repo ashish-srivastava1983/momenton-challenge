@@ -58,3 +58,6 @@
 - Might need to craete a new ser of app-tier MIG and ILB in the new region.
 - Enable Cloud CDN with HTTP(s) Load balancer to serve static content faster and closer to the end user.
 - May explore the option of Cloud SQl (regional with read replicas) or Cloud Spanner (global SQL database) for data storage at scale and to achieve high availability and performance.
+- Cost needs to be considered carefully during scaling up of the environment.
+
+
